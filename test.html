@@ -23,7 +23,7 @@
         }
         h1 { font-size: 20px; margin-bottom: 8px; }
         p { color: #666; margin-bottom: 16px; font-size: 14px; }
-        img { margin: 20px auto; display: block; }
+        #qr-container { margin: 20px auto; min-height: 256px; display: flex; align-items: center; justify-content: center; }
         .url {
             font-family: monospace;
             font-size: 12px;
@@ -38,13 +38,35 @@
     <div class="container">
         <h1>&#x1F4F1; Test QR-code</h1>
         <p>Scan deze QR met je telefoon om te testen</p>
-        <img
-            src="https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=https%3A%2F%2Fdavejansenbri.github.io%2Fqr-linker%2F%3Fid%3D5794129"
-            alt="QR code voor asset 5794129"
-            width="256"
-            height="256"
-        />
+        <div id="qr-container">
+            <img
+                id="qr-img"
+                src="https://quickchart.io/qr?text=https%3A%2F%2Fdavejansenbri.github.io%2Fqr-linker%2F%3Fid%3D5794129&size=256&margin=2"
+                alt="QR code voor asset 5794129"
+                width="256"
+                height="256"
+                onerror="tryFallback()"
+            />
+        </div>
         <p class="url">https://davejansenbri.github.io/qr-linker/?id=5794129</p>
     </div>
+
+    <script>
+        var fallbackTried = 0;
+        function tryFallback() {
+            var img = document.getElementById('qr-img');
+            if (fallbackTried === 0) {
+                fallbackTried = 1;
+                img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=https%3A%2F%2Fdavejansenbri.github.io%2Fqr-linker%2F%3Fid%3D5794129';
+            } else if (fallbackTried === 1) {
+                fallbackTried = 2;
+                img.src = 'https://chart.googleapis.com/chart?cht=qr&chs=256x256&chl=https%3A%2F%2Fdavejansenbri.github.io%2Fqr-linker%2F%3Fid%3D5794129';
+            } else {
+                img.alt = 'QR kon niet geladen worden. Ga handmatig naar de URL hieronder.';
+                img.style.display = 'none';
+                document.getElementById('qr-container').innerHTML = '<p style="color:#e74c3c;">QR kon niet geladen worden.<br>Kopieer de URL hieronder.</p>';
+            }
+        }
+    </script>
 </body>
 </html>
