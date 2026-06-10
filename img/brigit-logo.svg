@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 60">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00a89d"/>
+      <stop offset="100%" stop-color="#7bc142"/>
+    </linearGradient>
+  </defs>
+  <!-- b icon -->
+  <rect x="5" y="5" width="40" height="50" rx="12" fill="url(#bg)"/>
+  <circle cx="30" cy="35" r="8" fill="white"/>
+  <circle cx="30" cy="35" r="3" fill="url(#bg)"/>
+  <rect x="12" y="5" width="10" height="25" fill="url(#bg)"/>
+  <!-- brigit text -->
+  <text x="55" y="43" font-family="Arial Rounded MT Bold, Arial, sans-serif" font-size="30" font-weight="bold" fill="#00a89d">brigit</text>
+</svg>

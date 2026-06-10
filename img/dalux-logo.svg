@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60">
+  <!-- House icon -->
+  <polygon points="10,35 35,10 60,35" fill="#4a6d7c" stroke="none"/>
+  <rect x="15" y="35" width="40" height="25" fill="#a0c83b" />
+  <!-- DALUX text -->
+  <text x="75" y="48" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="#4a6d7c" letter-spacing="2">DALUX</text>
+</svg>

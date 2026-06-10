@@ -36,24 +36,31 @@
             margin-bottom: 24px;
         }
         .btn {
-            display: block;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
             width: 100%;
-            padding: 16px;
-            border: none;
+            padding: 16px 20px;
+            border: 2px solid #e0e0e0;
             border-radius: 12px;
             font-size: 18px;
             font-weight: 600;
             text-decoration: none;
-            color: white;
+            color: #333;
             margin-bottom: 12px;
-            transition: transform 0.1s;
+            background: white;
+            transition: transform 0.1s, box-shadow 0.1s;
         }
-        .btn:active { transform: scale(0.97); }
-        .btn-dalux {
-            background: linear-gradient(135deg, #2c3e50, #34495e);
+        .btn:active {
+            transform: scale(0.97);
         }
-        .btn-brigit {
-            background: linear-gradient(135deg, #d4a017, #c6930a);
+        .btn:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .btn img {
+            height: 32px;
+            width: auto;
         }
         .error {
             color: #e74c3c;
@@ -65,33 +72,36 @@
     <div class="card" id="card">
         <p class="asset-id">Asset</p>
         <p class="asset-number" id="asset-number">...</p>
-        <a class="btn btn-dalux" id="btn-dalux">&#x1F4D0; Open in Dalux</a>
-        <a class="btn btn-brigit" id="btn-brigit">&#x1F527; Open in Brigit</a>
+        <a class="btn" id="btn-dalux">
+            <img src="img/dalux-logo.svg" alt="Dalux">
+        </a>
+        <a class="btn" id="btn-brigit">
+            <img src="img/brigit-logo.svg" alt="Brigit">
+        </a>
     </div>
 
     <script>
-        // Asset lookup table (per project, later from assets.json)
-        const assets = {
+        var assets = {
             "5794129": {
                 dalux: "LandingPage%7C%3F303048207527575552%7C%3F3%7C%3F646911%7C%3F%2BVthpnVQsy6FOKR0ZDdafA%7C%3FVE_Vavbox_Circular%201%20Outlet%20No%20Plenum_MEPcontent_Trox%20Air_TVR%20Compact%3A%20TVR%20Compact_TVR%20Compact_315"
             }
         };
 
-        const params = new URLSearchParams(window.location.search);
-        const id = params.get('id');
+        var params = new URLSearchParams(window.location.search);
+        var id = params.get('id');
 
         if (id && assets[id]) {
             document.getElementById('asset-number').textContent = id;
-            document.getElementById('btn-dalux').href = 
+            document.getElementById('btn-dalux').href =
                 'https://node2.field.dalux.com/service/qr/content?qrString=' + assets[id].dalux;
-            document.getElementById('btn-brigit').href = 
+            document.getElementById('btn-brigit').href =
                 'https://bri.brigit.online/qrcode/scan/' + id;
         } else if (id) {
             document.getElementById('asset-number').textContent = id;
-            document.getElementById('card').innerHTML = 
+            document.getElementById('card').innerHTML =
                 '<p class="error">Asset ' + id + ' niet gevonden in dit project.</p>';
         } else {
-            document.getElementById('card').innerHTML = 
+            document.getElementById('card').innerHTML =
                 '<p class="error">Geen asset ID opgegeven.</p>';
         }
     </script>
