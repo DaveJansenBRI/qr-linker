@@ -23,27 +23,28 @@
         }
         h1 { font-size: 20px; margin-bottom: 8px; }
         p { color: #666; margin-bottom: 16px; font-size: 14px; }
-        #qr { margin: 20px auto; }
-        .url { font-family: monospace; font-size: 12px; color: #999; word-break: break-all; max-width: 300px; margin-top: 12px; }
+        img { margin: 20px auto; display: block; }
+        .url {
+            font-family: monospace;
+            font-size: 12px;
+            color: #999;
+            word-break: break-all;
+            max-width: 300px;
+            margin: 12px auto 0;
+        }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 </head>
 <body>
     <div class="container">
         <h1>&#x1F4F1; Test QR-code</h1>
         <p>Scan deze QR met je telefoon om te testen</p>
-        <canvas id="qr"></canvas>
-        <p class="url" id="url"></p>
+        <img
+            src="https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=https%3A%2F%2Fdavejansenbri.github.io%2Fqr-linker%2F%3Fid%3D5794129"
+            alt="QR code voor asset 5794129"
+            width="256"
+            height="256"
+        />
+        <p class="url">https://davejansenbri.github.io/qr-linker/?id=5794129</p>
     </div>
-
-    <script>
-        const url = 'https://davejansenbri.github.io/qr-linker/?id=5794129';
-        document.getElementById('url').textContent = url;
-        QRCode.toCanvas(document.getElementById('qr'), url, {
-            width: 256,
-            margin: 2,
-            color: { dark: '#000000', light: '#ffffff' }
-        });
-    </script>
 </body>
 </html>
