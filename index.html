@@ -39,13 +39,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
             width: 100%;
             padding: 16px 20px;
             border: 2px solid #e0e0e0;
             border-radius: 12px;
-            font-size: 18px;
-            font-weight: 600;
             text-decoration: none;
             color: #333;
             margin-bottom: 12px;
@@ -59,8 +56,10 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         .btn img {
-            height: 32px;
+            height: 40px;
             width: auto;
+            max-width: 200px;
+            object-fit: contain;
         }
         .error {
             color: #e74c3c;
@@ -73,10 +72,10 @@
         <p class="asset-id">Asset</p>
         <p class="asset-number" id="asset-number">...</p>
         <a class="btn" id="btn-dalux">
-            <img src="img/dalux-logo.svg" alt="Dalux">
+            <img src="img/dalux-logo.png" alt="Dalux">
         </a>
         <a class="btn" id="btn-brigit">
-            <img src="img/brigit-logo.svg" alt="Brigit">
+            <img src="img/brigit-logo.png" alt="Brigit">
         </a>
     </div>
 
