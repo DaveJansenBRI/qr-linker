@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Dalux Links - IFC GUID</title>
+    <title>Test Dalux Links - GUID Conversie</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -21,126 +21,154 @@
             margin-bottom: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
-        .element:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
-        .element a {
-            text-decoration: none;
-            color: #0366d6;
-            font-weight: 600;
-            font-size: 15px;
-        }
-        .meta {
-            font-size: 12px;
-            color: #888;
-            margin-top: 4px;
-            font-family: monospace;
-        }
-        .badge {
+        .element-title { font-weight: 600; font-size: 15px; margin-bottom: 8px; }
+        .links { display: flex; gap: 12px; flex-wrap: wrap; }
+        .links a {
             display: inline-block;
-            background: #e1f5fe;
-            color: #0277bd;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            margin-right: 8px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
         }
-        .warning {
-            background: #fff3e0;
-            border-left: 4px solid #f57c00;
+        .link-a { background: #e3f2fd; color: #1565c0; }
+        .link-b { background: #fce4ec; color: #c62828; }
+        .link-a:hover { background: #bbdefb; }
+        .link-b:hover { background: #f8bbd0; }
+        .meta {
+            font-size: 11px;
+            color: #888;
+            margin-top: 6px;
+            font-family: monospace;
+            word-break: break-all;
+        }
+        .info {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
             padding: 12px 16px;
             border-radius: 4px;
             margin-bottom: 24px;
             font-size: 14px;
         }
+        .badge {
+            display: inline-block;
+            background: #e0e0e0;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            margin-right: 8px;
+        }
     </style>
 </head>
 <body>
-    <h1>🧪 Test Dalux Links (IFC GUID)</h1>
-    <p class="subtitle">10 elementen — klik om te testen of Dalux het element opent</p>
+    <h1>🧪 Test Dalux Links — GUID Conversie</h1>
+    <p class="subtitle">IFC GUID → Dalux Base64. Test welke methode werkt.</p>
 
-    <div class="warning">
-        ⚠️ <strong>Let op:</strong> De IFC GUID encoding kan afwijken van wat Dalux verwacht.
-        Als je een 500-error krijgt, moet de GUID geconverteerd worden van IFC-formaat naar base64.
+    <div class="info">
+        <strong>Twee methodes:</strong><br>
+        🔵 <strong>Methode A</strong> = Direct (big-endian, zelfde volgorde als IFC)<br>
+        🔴 <strong>Methode B</strong> = .NET byte-swap (Data1/2/3 reversed)<br><br>
+        Klik op beide voor element #1 en laat weten welke werkt!
     </div>
 
-    <div class="element">
-        <span class="badge">VAV Ø315</span>
-        <a href="https://node2.field.dalux.com/service/qr/content?qrString=LandingPage%7C%3F303048207527575552%7C%3F3%7C%3F646911%7C%3F3SMIK9E5vAEOs8AMi6xUq8%7C%3FVE_Vavbox_Circular%201%20Outlet%20No%20Plenum_MEPcontent_Trox%20Air_TVR%20Compact%3A%20TVR%20Compact_TVR%20Compact_315" target="_blank">
-            #1 — TVR Compact 315
-        </a>
-        <div class="meta">GUID: 3SMIK9E5vAEOs8AMi6xUq8</div>
-    </div>
+    <div id="elements"></div>
 
-    <div class="element">
-        <span class="badge">VAV Ø250</span>
-        <a href="https://node2.field.dalux.com/service/qr/content?qrString=LandingPage%7C%3F303048207527575552%7C%3F3%7C%3F646911%7C%3F3SMIK9E5vAEOs8AMi6xUqQ%7C%3FVE_Vavbox_Circular%201%20Outlet%20No%20Plenum_MEPcontent_Trox%20Air_TVR%20Compact%3A%20TVR%20Compact_TVR%20Compact_250" target="_blank">
-            #2 — TVR Compact 250
-        </a>
-        <div class="meta">GUID: 3SMIK9E5vAEOs8AMi6xUqQ</div>
-    </div>
+    <script>
+        // ═══════════════════════════════════════════
+        // IFC GUID → Dalux Base64 Converter
+        // ═══════════════════════════════════════════
 
-    <div class="element">
-        <span class="badge">Cistern</span>
-        <a href="https://node2.field.dalux.com/service/qr/content?qrString=LandingPage%7C%3F303048207527575552%7C%3F3%7C%3F646911%7C%3F3YD18rtH9AqOjieOIQZNNy%7C%3FSA_Cistern_MEPcontent_Geberit_Duofix%20UP320_INT-EN%3A%20Duofix%20UP320" target="_blank">
-            #3 — Geberit Duofix UP320
-        </a>
-        <div class="meta">GUID: 3YD18rtH9AqOjieOIQZNNy</div>
-    </div>
+        var IFC_CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_$';
 
-    <div class="element">
-        <span class="badge">Toilet</span>
-        <a href="https://node2.field.dalux.com/service/qr/content?qrString=LandingPage%7C%3F303048207527575552%7C%3F3%7C%3F646911%7C%3F3YD18rtH9AqOjieOIQZNBb%7C%3FNLRS_74_PF_FB_AV_Geberit%20wandtoiletpot%20S8P00090000G_BCB%3A%20NLRS_74_PF_FB_AV_Geberit%20wandtoiletpot%20S8P00090000G_BCB" target="_blank">
-            #4 — Geberit wandtoiletpot
-        </a>
-        <div class="meta">GUID: 3YD18rtH9AqOjieOIQZNBb</div>
-    </div>
+        function ifcGuidToBytes(ifcGuid) {
+            var n = 0n;
+            for (var i = 0; i < 22; i++) {
+                n = n * 64n + BigInt(IFC_CHARS.indexOf(ifcGuid[i]));
+            }
+            var bytes = new Uint8Array(16);
+            for (var i = 15; i >= 0; i--) {
+                bytes[i] = Number(n & 0xFFn);
+                n >>= 8n;
+            }
+            return bytes;
+        }
 
-    <div class="element">
-        <span class="badge">Cistern</span>
-        <a href="https://node2.field.dalux.com/service/qr/content?qrString=LandingPage%7C%3F303048207527575552%7C%3F3%7C%3F646911%7C%3F3YD18rtH9AqOjieOIQZNFQ%7C%3FSA_Cistern_MEPcontent_Geberit_Duofix%20UP320_INT-EN%3A%20Duofix%20UP320" target="_blank">
-            #5 — Geberit Duofix UP320
-        </a>
-        <div class="meta">GUID: 3YD18rtH9AqOjieOIQZNFQ</div>
-    </div>
+        function bytesToBase64(bytes) {
+            var binary = '';
+            for (var i = 0; i < bytes.length; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary).replace(/=+$/, '');
+        }
 
-    <div class="element">
-        <span class="badge">Toilet</span>
-        <a href="https://node2.field.dalux.com/service/qr/content?qrString=LandingPage%7C%3F303048207527575552%7C%3F3%7C%3F646911%7C%3F3YD18rtH9AqOjieOIQZNFP%7C%3FNLRS_74_PF_FB_AV_Geberit%20wandtoiletpot%20S8P00090000G_BCB%3A%20NLRS_74_PF_FB_AV_Geberit%20wandtoiletpot%20S8P00090000G_BCB" target="_blank">
-            #6 — Geberit wandtoiletpot
-        </a>
-        <div class="meta">GUID: 3YD18rtH9AqOjieOIQZNFP</div>
-    </div>
+        // Method A: Direct big-endian (same byte order as IFC)
+        function convertMethodA(ifcGuid) {
+            return bytesToBase64(ifcGuidToBytes(ifcGuid));
+        }
 
-    <div class="element">
-        <span class="badge">Wastafel</span>
-        <a href="https://node2.field.dalux.com/service/qr/content?qrString=LandingPage%7C%3F303048207527575552%7C%3F3%7C%3F646911%7C%3F3YD18rtH9AqOjieOIQZKSa%7C%3FNLRS_74_PF_UN_AV_Geberit%20wastafel%20500%20229%2001%201_BCB%3A%20NLRS_74_PF_UN_AV_Geberit%20wastafel%20500%20229%2001%201_BCB" target="_blank">
-            #7 — Geberit wastafel 500
-        </a>
-        <div class="meta">GUID: 3YD18rtH9AqOjieOIQZKSa</div>
-    </div>
+        // Method B: .NET GUID byte swap
+        function convertMethodB(ifcGuid) {
+            var bytes = ifcGuidToBytes(ifcGuid);
+            var swapped = new Uint8Array(16);
+            // Data1 (4 bytes) reversed
+            swapped[0] = bytes[3]; swapped[1] = bytes[2];
+            swapped[2] = bytes[1]; swapped[3] = bytes[0];
+            // Data2 (2 bytes) reversed
+            swapped[4] = bytes[5]; swapped[5] = bytes[4];
+            // Data3 (2 bytes) reversed
+            swapped[6] = bytes[7]; swapped[7] = bytes[6];
+            // Data4 (8 bytes) as-is
+            for (var i = 8; i < 16; i++) swapped[i] = bytes[i];
+            return bytesToBase64(swapped);
+        }
 
-    <div class="element">
-        <span class="badge">Wastafel</span>
-        <a href="https://node2.field.dalux.com/service/qr/content?qrString=LandingPage%7C%3F303048207527575552%7C%3F3%7C%3F646911%7C%3F3YD18rtH9AqOjieOIQZK01%7C%3FNLRS_74_PF_UN_AV_Geberit%20wastafel%20500%20229%2001%201_BCB%3A%20NLRS_74_PF_UN_AV_Geberit%20wastafel%20500%20229%2001%201_BCB" target="_blank">
-            #8 — Geberit wastafel 500
-        </a>
-        <div class="meta">GUID: 3YD18rtH9AqOjieOIQZK01</div>
-    </div>
+        function buildDaluxUrl(daluxGuid, objectType) {
+            // Add space after colon if missing (IFC has "Type:Name", Dalux wants "Type: Name")
+            var fixedType = objectType.replace(/:([^ ])/g, ': $1');
+            var qrString = 'LandingPage|?' + '303048207527575552' + '|?3|?646911|?' + daluxGuid + '|?' + fixedType;
+            return 'https://node2.field.dalux.com/service/qr/content?qrString=' + encodeURIComponent(qrString);
+        }
 
-    <div class="element">
-        <span class="badge">Wastafel</span>
-        <a href="https://node2.field.dalux.com/service/qr/content?qrString=LandingPage%7C%3F303048207527575552%7C%3F3%7C%3F646911%7C%3F3YD18rtH9AqOjieOIQZK8O%7C%3FNLRS_74_PF_UN_AV_Geberit%20wastafel%20500%20229%2001%201_BCB%3A%20NLRS_74_PF_UN_AV_Geberit%20wastafel%20500%20229%2001%201_BCB" target="_blank">
-            #9 — Geberit wastafel 500
-        </a>
-        <div class="meta">GUID: 3YD18rtH9AqOjieOIQZK8O</div>
-    </div>
+        // ═══════════════════════════════════════════
+        // Element data (from IFC export)
+        // ═══════════════════════════════════════════
 
-    <div class="element">
-        <span class="badge">Toilet</span>
-        <a href="https://node2.field.dalux.com/service/qr/content?qrString=LandingPage%7C%3F303048207527575552%7C%3F3%7C%3F646911%7C%3F3YD18rtH9AqOjieOIQZKoY%7C%3FNLRS_74_PF_FB_AV_Geberit%20wandtoiletpot%20S8P00090000G_BCB%3A%20NLRS_74_PF_FB_AV_Geberit%20wandtoiletpot%20S8P00090000G_BCB" target="_blank">
-            #10 — Geberit wandtoiletpot
-        </a>
-        <div class="meta">GUID: 3YD18rtH9AqOjieOIQZKoY</div>
-    </div>
+        var elements = [
+            { guid: '3SMIK9E5vAEOs8AMi6xUq8', type: 'VE_Vavbox_Circular 1 Outlet No Plenum_MEPcontent_Trox Air_TVR Compact:TVR Compact_TVR Compact_315', label: 'TVR Compact Ø315' },
+            { guid: '3SMIK9E5vAEOs8AMi6xUqQ', type: 'VE_Vavbox_Circular 1 Outlet No Plenum_MEPcontent_Trox Air_TVR Compact:TVR Compact_TVR Compact_250', label: 'TVR Compact Ø250' },
+            { guid: '3YD18rtH9AqOjieOIQZNNy', type: 'SA_Cistern_MEPcontent_Geberit_Duofix UP320_INT-EN:Duofix UP320', label: 'Geberit Duofix UP320' },
+            { guid: '3YD18rtH9AqOjieOIQZNBb', type: 'NLRS_74_PF_FB_AV_Geberit wandtoiletpot S8P00090000G_BCB:NLRS_74_PF_FB_AV_Geberit wandtoiletpot S8P00090000G_BCB', label: 'Geberit wandtoiletpot' },
+            { guid: '3YD18rtH9AqOjieOIQZNFQ', type: 'SA_Cistern_MEPcontent_Geberit_Duofix UP320_INT-EN:Duofix UP320', label: 'Geberit Duofix UP320' },
+            { guid: '3YD18rtH9AqOjieOIQZNFP', type: 'NLRS_74_PF_FB_AV_Geberit wandtoiletpot S8P00090000G_BCB:NLRS_74_PF_FB_AV_Geberit wandtoiletpot S8P00090000G_BCB', label: 'Geberit wandtoiletpot' },
+            { guid: '3YD18rtH9AqOjieOIQZKSa', type: 'NLRS_74_PF_UN_AV_Geberit wastafel 500 229 01 1_BCB:NLRS_74_PF_UN_AV_Geberit wastafel 500 229 01 1_BCB', label: 'Geberit wastafel 500' },
+            { guid: '3YD18rtH9AqOjieOIQZK01', type: 'NLRS_74_PF_UN_AV_Geberit wastafel 500 229 01 1_BCB:NLRS_74_PF_UN_AV_Geberit wastafel 500 229 01 1_BCB', label: 'Geberit wastafel 500' },
+            { guid: '3YD18rtH9AqOjieOIQZK8O', type: 'NLRS_74_PF_UN_AV_Geberit wastafel 500 229 01 1_BCB:NLRS_74_PF_UN_AV_Geberit wastafel 500 229 01 1_BCB', label: 'Geberit wastafel 500' },
+            { guid: '3YD18rtH9AqOjieOIQZKoY', type: 'NLRS_74_PF_FB_AV_Geberit wandtoiletpot S8P00090000G_BCB:NLRS_74_PF_FB_AV_Geberit wandtoiletpot S8P00090000G_BCB', label: 'Geberit wandtoiletpot' }
+        ];
 
+        // ═══════════════════════════════════════════
+        // Render
+        // ═══════════════════════════════════════════
+
+        var container = document.getElementById('elements');
+
+        elements.forEach(function(el, idx) {
+            var guidA = convertMethodA(el.guid);
+            var guidB = convertMethodB(el.guid);
+            var urlA = buildDaluxUrl(guidA, el.type);
+            var urlB = buildDaluxUrl(guidB, el.type);
+
+            var div = document.createElement('div');
+            div.className = 'element';
+            div.innerHTML =
+                '<div class="element-title"><span class="badge">#' + (idx + 1) + '</span>' + el.label + '</div>' +
+                '<div class="links">' +
+                '  <a class="link-a" href="' + urlA + '" target="_blank">🔵 Methode A</a>' +
+                '  <a class="link-b" href="' + urlB + '" target="_blank">🔴 Methode B</a>' +
+                '</div>' +
+                '<div class="meta">IFC: ' + el.guid + ' → A: ' + guidA + ' | B: ' + guidB + '</div>';
+            container.appendChild(div);
+        });
+    </script>
 </body>
 </html>
