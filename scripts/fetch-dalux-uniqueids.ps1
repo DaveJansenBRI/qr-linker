@@ -1,12 +1,11 @@
-# Dalux UniqueID Fetcher - Simpel
-# Leest renderColors uit mids_lijst.txt, haalt uniqueIDs op
+# Dalux UniqueID Fetcher
+# Haalt uniqueIDs op via BimProxy met sessie-token
 
-$auth = "2124438:7IkAdI5ga8YxsfbY"
-$apiUrl = "https://node2.field.dalux.com/service-1-18/EntryPoints/Web/BimProxy.aspx/Web/ElementPropertiesGetUI3"
+$auth = "422080:XjSBnew27FiCj6bd"
+$apiUrl = "https://node2.field.dalux.com/service-1-18/EntryPoints/Web/BimProxy.aspx/Web/ElementPropertiesGet2"
 $inputFile = "$PSScriptRoot\..\img\mids_lijst.txt"
 $outputFile = "$PSScriptRoot\..\dalux_elements.csv"
 
-# Mids inlezen
 Write-Host "Mids inlezen..." -ForegroundColor Cyan
 $mids = @()
 Get-Content $inputFile -Encoding UTF8 | ForEach-Object {
@@ -18,7 +17,6 @@ Get-Content $inputFile -Encoding UTF8 | ForEach-Object {
 $mids = $mids | Sort-Object
 Write-Host "Unieke renderColors: $($mids.Count)"
 
-# Batches maken
 $batchSize = 50
 $results = @()
 $fouten = 0
@@ -29,7 +27,7 @@ for ($i = 0; $i -lt $mids.Count; $i += $batchSize) {
     $nr = [Math]::Floor($i / $batchSize) + 1
     Write-Host "Batch $nr/$totaal ..." -NoNewline
 
-    $body = '{"time":"' + (Get-Date).ToUniversalTime().ToString("o") + '","version":2,"command":"ElementPropertiesGetUI3","callingUrl":"https://node2.build.dalux.com/client/303048207527575552/location/default","constructor":{"auth":"' + $auth + '","siteRightsID":563307},"parameters":{"contextHandle":"b1646911tDEFAULT","versionHash":281617172,"renderColors":[' + ($batch -join ',') + ']}}'
+    $body = '{"time":"' + (Get-Date).ToUniversalTime().ToString("o") + '","version":2,"command":"ElementPropertiesGet2","callingUrl":"https://node2.build.dalux.com/client/303048207527575552/location/default","constructor":{"auth":"' + $auth + '","siteRightsID":563307},"parameters":{"contextHandle":"b1646911tDEFAULT","versionHash":281617172,"renderColors":[' + ($batch -join ',') + ']}}'
 
     try {
         $r = Invoke-RestMethod -Uri $apiUrl -Method Post -Body $body -ContentType "text/plain"
