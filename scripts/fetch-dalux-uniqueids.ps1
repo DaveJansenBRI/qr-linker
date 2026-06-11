@@ -1,284 +1,211 @@
-# ==============================================================
-# Dalux UniqueID Fetcher v3 — via REST API
-# Gebruikt de officiële Dalux API met API-sleutel
-# ==============================================================
+# Dalux UniqueID Fetcher v3
+# Gebruikt de Dalux REST API + BimProxy API
 
-# --- CONFIGURATIE ---
 $apiKey = "2124386:HWdB3Dh5LdbQFldz"
 $baseUrl = "https://node2.field.dalux.com/service/api/4.0"
 $headers = @{ "X-API-KEY" = $apiKey }
-
-# --- BESTANDEN ---
 $outputFile = "$PSScriptRoot\..\dalux_elements.csv"
 
-# --- STAP 1: Projecten ophalen ---
-Write-Host "=== STAP 1: Projecten ophalen ===" -ForegroundColor Cyan
+# STAP 1: Projecten
+Write-Host "STAP 1: Projecten ophalen" -ForegroundColor Cyan
 try {
     $projects = Invoke-RestMethod -Uri "$baseUrl/projects" -Headers $headers -Method Get
-    Write-Host "Projecten gevonden: $($projects.items.Count)" -ForegroundColor Green
+    Write-Host "Projecten: $($projects.items.Count)" -ForegroundColor Green
     foreach ($p in $projects.items) {
-        Write-Host "  [$($p.projectId)] $($p.projectName)" -ForegroundColor White
+        Write-Host "  [$($p.projectId)] $($p.projectName)"
     }
-} catch {
-    Write-Host "FOUT bij projecten ophalen: $($_.Exception.Message)" -ForegroundColor Red
+}
+catch {
+    Write-Host "FOUT: $($_.Exception.Message)" -ForegroundColor Red
     exit
 }
 
-# --- Zoek het Vindingrijk project ---
-$project = $projects.items | Where-Object { $_.projectName -like "*Vindingrijk*" -or $_.projectName -like "*3307*" -or $_.projectName -like "*Maassluis*" -or $_.projectName -like "*Nieuwbouw*" }
-if (-not $project) {
-    Write-Host "Vindingrijk project niet gevonden. Alle projecten:" -ForegroundColor Yellow
-    $projects.items | ForEach-Object { Write-Host "  $($_.projectId) — $($_.projectName)" }
-    $projectId = Read-Host "Voer het juiste projectId in"
-} else {
-    if ($project -is [array]) { $project = $project[0] }
+# Zoek Vindingrijk
+$project = $projects.items | Where-Object { $_.projectName -like "*Vindingrijk*" -or $_.projectName -like "*Maassluis*" }
+if ($project -is [array]) { $project = $project[0] }
+if ($project) {
     $projectId = $project.projectId
-    Write-Host "Project gevonden: $($project.projectName) [$projectId]" -ForegroundColor Green
+    Write-Host "Gevonden: $($project.projectName) [$projectId]" -ForegroundColor Green
+}
+else {
+    Write-Host "Vindingrijk niet gevonden. Kies uit bovenstaande lijst." -ForegroundColor Yellow
+    $projectId = Read-Host "Voer projectId in"
 }
 
-# --- STAP 2: Gebouwen ophalen ---
+# STAP 2: Gebouwen
 Write-Host ""
-Write-Host "=== STAP 2: Gebouwen ophalen ===" -ForegroundColor Cyan
+Write-Host "STAP 2: Gebouwen ophalen" -ForegroundColor Cyan
 try {
     $buildings = Invoke-RestMethod -Uri "$baseUrl/projects/$projectId/buildings" -Headers $headers -Method Get
-    Write-Host "Gebouwen gevonden: $($buildings.items.Count)" -ForegroundColor Green
+    Write-Host "Gebouwen: $($buildings.items.Count)" -ForegroundColor Green
     foreach ($b in $buildings.items) {
-        Write-Host "  [$($b.buildingId)] $($b.buildingName)" -ForegroundColor White
-    }
-} catch {
-    Write-Host "FOUT: $($_.Exception.Message)" -ForegroundColor Red
-    Write-Host "Probeer: /projects/$projectId" -ForegroundColor Yellow
-    
-    # Probeer project detail
-    try {
-        $detail = Invoke-RestMethod -Uri "$baseUrl/projects/$projectId" -Headers $headers -Method Get
-        Write-Host "Project detail:" -ForegroundColor Cyan
-        $detail | ConvertTo-Json -Depth 3 | Write-Host
-    } catch {
-        Write-Host "Kan project detail ook niet ophalen: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "  [$($b.buildingId)] $($b.buildingName)"
     }
 }
+catch {
+    Write-Host "Gebouwen niet beschikbaar: $($_.Exception.Message)" -ForegroundColor Yellow
+}
 
-# --- STAP 3: BIM Models ophalen ---
+# STAP 3: Test interne BimProxy API
 Write-Host ""
-Write-Host "=== STAP 3: BIM Models ophalen ===" -ForegroundColor Cyan
-
-# Probeer verschillende API endpoints
-$endpoints = @(
-    "/projects/$projectId/bim/models",
-    "/projects/$projectId/models",
-    "/projects/$projectId/bim",
-    "/projects/$projectId/files"
-)
-
-$modelsData = $null
-foreach ($ep in $endpoints) {
-    try {
-        Write-Host "  Probeer: $ep ..." -NoNewline
-        $modelsData = Invoke-RestMethod -Uri "$baseUrl$ep" -Headers $headers -Method Get
-        Write-Host " OK!" -ForegroundColor Green
-        $modelsData | ConvertTo-Json -Depth 3 | Write-Host
-        break
-    } catch {
-        Write-Host " Nee ($($_.Exception.Response.StatusCode))" -ForegroundColor Yellow
-    }
-}
-
-# --- STAP 4: Probeer elementen via building ---
-if ($buildings -and $buildings.items) {
-    Write-Host ""
-    Write-Host "=== STAP 4: Elementen ophalen ===" -ForegroundColor Cyan
-    
-    foreach ($building in $buildings.items) {
-        $bid = $building.buildingId
-        Write-Host "Gebouw: $($building.buildingName) [$bid]" -ForegroundColor Cyan
-        
-        $elementEndpoints = @(
-            "/projects/$projectId/buildings/$bid/elements",
-            "/projects/$projectId/buildings/$bid/bim/elements",
-            "/buildings/$bid/elements",
-            "/projects/$projectId/buildings/$bid/objects"
-        )
-        
-        foreach ($ep in $elementEndpoints) {
-            try {
-                Write-Host "  Probeer: $ep ..." -NoNewline
-                $elemData = Invoke-RestMethod -Uri "$baseUrl$ep" -Headers $headers -Method Get
-                Write-Host " OK!" -ForegroundColor Green
-                
-                # Toon eerste paar elementen
-                if ($elemData.items) {
-                    Write-Host "  Elementen: $($elemData.items.Count)" -ForegroundColor Green
-                    $elemData.items | Select-Object -First 3 | ConvertTo-Json -Depth 3 | Write-Host
-                } else {
-                    $elemData | ConvertTo-Json -Depth 3 | Write-Host
-                }
-                break
-            } catch {
-                $code = $_.Exception.Response.StatusCode
-                Write-Host " Nee ($code)" -ForegroundColor Yellow
-            }
-        }
-    }
-}
-
-# --- STAP 5: Probeer ook de interne API met de API-key ---
-Write-Host ""
-Write-Host "=== STAP 5: Interne BimProxy API test ===" -ForegroundColor Cyan
-
+Write-Host "STAP 3: BimProxy API testen" -ForegroundColor Cyan
 $internalUrl = "https://node2.field.dalux.com/service-1-18/EntryPoints/Web/BimProxy.aspx/Web/ElementPropertiesGetUI3"
+
 $testBody = @{
-    time        = (Get-Date).ToUniversalTime().ToString("o")
-    version     = 2
-    command     = "ElementPropertiesGetUI3"
-    callingUrl  = "https://node2.build.dalux.com/client/303048207527575552/location/default"
+    time = (Get-Date).ToUniversalTime().ToString("o")
+    version = 2
+    command = "ElementPropertiesGetUI3"
+    callingUrl = "https://node2.build.dalux.com/client/303048207527575552/location/default"
     constructor = @{
-        auth         = $apiKey
+        auth = $apiKey
         siteRightsID = 563307
     }
-    parameters  = @{
+    parameters = @{
         contextHandle = "b1646911tDEFAULT"
-        versionHash   = 281617172
-        renderColors  = @(55633)
+        versionHash = 281617172
+        renderColors = @(55633)
     }
 } | ConvertTo-Json -Depth 5
 
-try {
-    Write-Host "  Test met renderColor 55633..." -NoNewline
-    $testResult = Invoke-RestMethod -Uri $internalUrl -Method Post -Body $testBody -ContentType "text/plain" -Headers @{
-        "accept"  = "application/json, text/plain, */*"
-        "origin"  = "https://node2.build.dalux.com"
-        "referer" = "https://node2.build.dalux.com/"
-    }
-    
-    if ($testResult.value -and $testResult.value.Count -gt 0) {
-        Write-Host " OK!" -ForegroundColor Green
-        Write-Host "  Element: $($testResult.value[0].name)" -ForegroundColor Cyan
-        Write-Host "  UniqueID: $($testResult.value[0].uniqueID)" -ForegroundColor Cyan
-        Write-Host ""
-        Write-Host "  ✅ Interne API werkt met API-key!" -ForegroundColor Green
-        Write-Host "  Start bulk ophalen..." -ForegroundColor Cyan
-        
-        # --- BULK OPHALEN ---
-        $inputFile = "$PSScriptRoot\..\img\mids_lijst.txt"
-        $lines = Get-Content $inputFile -Encoding UTF8 | Where-Object { $_ -match '^\d+\|' }
-        $elements = @()
-        foreach ($line in $lines) {
-            $parts = $line.Split('|')
-            if ($parts.Count -ge 3 -and $parts[0] -match '^\d+$') {
-                $elements += [PSCustomObject]@{
-                    mid  = [int]$parts[0]
-                    eid  = $parts[1]
-                    name = $parts[2]
-                }
-            }
-        }
-        
-        # Gebruik mid kolom als renderColor
-        $uniqueMids = $elements | Select-Object -ExpandProperty mid -Unique | Sort-Object
-        Write-Host "  $($uniqueMids.Count) unieke mids" -ForegroundColor Green
-        
-        $batchSize = 50
-        $batches = [System.Collections.ArrayList]@()
-        for ($i = 0; $i -lt $uniqueMids.Count; $i += $batchSize) {
-            $batch = $uniqueMids[$i..([Math]::Min($i + $batchSize - 1, $uniqueMids.Count - 1))]
-            [void]$batches.Add($batch)
-        }
-        
-        $results = @()
-        $errors = @()
-        $batchNum = 0
-        
-        foreach ($batch in $batches) {
-            $batchNum++
-            Write-Host "  Batch $batchNum/$($batches.Count)..." -NoNewline
-            
-            $body = @{
-                time        = (Get-Date).ToUniversalTime().ToString("o")
-                version     = 2
-                command     = "ElementPropertiesGetUI3"
-                callingUrl  = "https://node2.build.dalux.com/client/303048207527575552/location/default"
-                constructor = @{ auth = $apiKey; siteRightsID = 563307 }
-                parameters  = @{
-                    contextHandle = "b1646911tDEFAULT"
-                    versionHash   = 281617172
-                    renderColors  = @($batch)
-                }
-            } | ConvertTo-Json -Depth 5
-            
-            try {
-                $response = Invoke-RestMethod -Uri $internalUrl -Method Post -Body $body -ContentType "text/plain" -Headers @{
-                    "accept"  = "application/json, text/plain, */*"
-                    "origin"  = "https://node2.build.dalux.com"
-                    "referer" = "https://node2.build.dalux.com/"
-                }
-                
-                if ($response.value) {
-                    foreach ($elem in $response.value) {
-                        $nativeProps = @{}
-                        if ($elem.nativePropertyGroups) {
-                            foreach ($group in $elem.nativePropertyGroups) {
-                                foreach ($prop in $group.properties) {
-                                    $nativeProps[$prop.key] = $prop.value
-                                }
-                            }
-                        }
-                        $ifcGuid = ""
-                        if ($elem.propertyGroups) {
-                            foreach ($group in $elem.propertyGroups) {
-                                foreach ($prop in $group.properties) {
-                                    if ($prop.key -eq "IfcGUID") { $ifcGuid = $prop.value }
-                                }
-                            }
-                        }
-                        
-                        $results += [PSCustomObject]@{
-                            mid        = $elem.renderColor
-                            name       = $elem.name
-                            uniqueID   = $elem.uniqueID
-                            externalID = if ($nativeProps['ExternalID']) { $nativeProps['ExternalID'] } else { "" }
-                            ifcGUID    = $ifcGuid
-                            tag        = if ($nativeProps['Tag']) { $nativeProps['Tag'] } else { "" }
-                            category   = if ($nativeProps['Category']) { $nativeProps['Category'] } else { "" }
-                            fileName   = if ($nativeProps['File Name']) { $nativeProps['File Name'] } else { "" }
-                        }
-                    }
-                    Write-Host " OK ($($response.value.Count))" -ForegroundColor Green
-                } else {
-                    Write-Host " Leeg" -ForegroundColor Yellow
-                }
-            } catch {
-                Write-Host " FOUT" -ForegroundColor Red
-                $errors += $_.Exception.Message
-            }
-            
-            Start-Sleep -Milliseconds 300
-        }
-        
-        # Export
-        Write-Host ""
-        Write-Host "========================================" -ForegroundColor Green
-        Write-Host "  Elementen opgehaald: $($results.Count)" -ForegroundColor Green
-        Write-Host "  Fouten: $($errors.Count)" -ForegroundColor $(if ($errors.Count -gt 0) {"Red"} else {"Green"})
-        Write-Host "========================================" -ForegroundColor Green
-        
-        if ($results.Count -gt 0) {
-            $results | Export-Csv -Path $outputFile -NoTypeInformation -Encoding UTF8
-            Write-Host "  CSV: $outputFile" -ForegroundColor Cyan
-            $results | Select-Object -First 5 | Format-Table mid, tag, uniqueID, externalID, ifcGUID -AutoSize
-        }
-    } else {
-        Write-Host " Leeg resultaat" -ForegroundColor Yellow
-    }
-} catch {
-    Write-Host " Mislukt: $($_.Exception.Message)" -ForegroundColor Red
-    
-    # Laat error body zien
-    try {
-        $reader = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
-        Write-Host "  Response: $($reader.ReadToEnd())" -ForegroundColor Yellow
-    } catch {}
+$internalHeaders = @{
+    "accept" = "application/json, text/plain, */*"
+    "origin" = "https://node2.build.dalux.com"
+    "referer" = "https://node2.build.dalux.com/"
 }
 
+$apiWorks = $false
+try {
+    $testResult = Invoke-RestMethod -Uri $internalUrl -Method Post -Body $testBody -ContentType "text/plain" -Headers $internalHeaders
+    if ($testResult.value -and $testResult.value.Count -gt 0) {
+        Write-Host "BimProxy werkt! Test element: $($testResult.value[0].name)" -ForegroundColor Green
+        $apiWorks = $true
+    }
+    else {
+        Write-Host "BimProxy: leeg resultaat" -ForegroundColor Yellow
+    }
+}
+catch {
+    Write-Host "BimProxy mislukt: $($_.Exception.Message)" -ForegroundColor Red
+    try {
+        $sr = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
+        Write-Host "Response: $($sr.ReadToEnd())" -ForegroundColor Yellow
+    }
+    catch {}
+}
+
+if (-not $apiWorks) {
+    Write-Host ""
+    Write-Host "BimProxy API werkt niet. Controleer de API key en probeer opnieuw." -ForegroundColor Red
+    exit
+}
+
+# STAP 4: Mids inlezen en bulk ophalen
 Write-Host ""
+Write-Host "STAP 4: Bulk ophalen" -ForegroundColor Cyan
+$inputFile = "$PSScriptRoot\..\img\mids_lijst.txt"
+$lines = Get-Content $inputFile -Encoding UTF8 | Where-Object { $_ -match '^\d+\|' }
+$mids = @()
+foreach ($line in $lines) {
+    $parts = $line.Split('|')
+    if ($parts.Count -ge 3 -and $parts[0] -match '^\d+$') {
+        $mid = [int]$parts[0]
+        if ($mids -notcontains $mid) {
+            $mids += $mid
+        }
+    }
+}
+$mids = $mids | Sort-Object
+Write-Host "Unieke mids: $($mids.Count)" -ForegroundColor Green
+
+$batchSize = 50
+$results = @()
+$errorCount = 0
+$totalBatches = [Math]::Ceiling($mids.Count / $batchSize)
+
+for ($i = 0; $i -lt $mids.Count; $i += $batchSize) {
+    $end = [Math]::Min($i + $batchSize - 1, $mids.Count - 1)
+    $batch = $mids[$i..$end]
+    $batchNum = [Math]::Floor($i / $batchSize) + 1
+
+    Write-Host "Batch $batchNum/$totalBatches ..." -NoNewline
+
+    $body = @{
+        time = (Get-Date).ToUniversalTime().ToString("o")
+        version = 2
+        command = "ElementPropertiesGetUI3"
+        callingUrl = "https://node2.build.dalux.com/client/303048207527575552/location/default"
+        constructor = @{
+            auth = $apiKey
+            siteRightsID = 563307
+        }
+        parameters = @{
+            contextHandle = "b1646911tDEFAULT"
+            versionHash = 281617172
+            renderColors = @($batch)
+        }
+    } | ConvertTo-Json -Depth 5
+
+    try {
+        $resp = Invoke-RestMethod -Uri $internalUrl -Method Post -Body $body -ContentType "text/plain" -Headers $internalHeaders
+
+        if ($resp.value) {
+            foreach ($elem in $resp.value) {
+                $np = @{}
+                if ($elem.nativePropertyGroups) {
+                    foreach ($g in $elem.nativePropertyGroups) {
+                        foreach ($pr in $g.properties) {
+                            $np[$pr.key] = $pr.value
+                        }
+                    }
+                }
+                $ifcGuid = ""
+                if ($elem.propertyGroups) {
+                    foreach ($g in $elem.propertyGroups) {
+                        foreach ($pr in $g.properties) {
+                            if ($pr.key -eq "IfcGUID") { $ifcGuid = $pr.value }
+                        }
+                    }
+                }
+
+                $obj = [PSCustomObject]@{
+                    mid = $elem.renderColor
+                    name = $elem.name
+                    uniqueID = $elem.uniqueID
+                    externalID = $(if ($np['ExternalID']) { $np['ExternalID'] } else { "" })
+                    ifcGUID = $ifcGuid
+                    tag = $(if ($np['Tag']) { $np['Tag'] } else { "" })
+                    category = $(if ($np['Category']) { $np['Category'] } else { "" })
+                    fileName = $(if ($np['File Name']) { $np['File Name'] } else { "" })
+                }
+                $results += $obj
+            }
+            Write-Host " OK ($($resp.value.Count) elementen)" -ForegroundColor Green
+        }
+        else {
+            Write-Host " Leeg" -ForegroundColor Yellow
+        }
+    }
+    catch {
+        Write-Host " FOUT: $($_.Exception.Message)" -ForegroundColor Red
+        $errorCount++
+    }
+
+    Start-Sleep -Milliseconds 300
+}
+
+# RESULTATEN
+Write-Host ""
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "Elementen opgehaald: $($results.Count)" -ForegroundColor Green
+Write-Host "Fouten: $errorCount" -ForegroundColor $(if ($errorCount -gt 0) { "Red" } else { "Green" })
+Write-Host "========================================" -ForegroundColor Cyan
+
+if ($results.Count -gt 0) {
+    $results | Export-Csv -Path $outputFile -NoTypeInformation -Encoding UTF8
+    Write-Host "CSV opgeslagen: $outputFile" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "Eerste 10 elementen:" -ForegroundColor Cyan
+    $results | Select-Object -First 10 | Format-Table mid, tag, uniqueID, externalID, ifcGUID -AutoSize
+}
+
 Write-Host "Klaar!" -ForegroundColor Green
